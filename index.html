@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agrawal — Client, Vendor & Invoice Management</title>
+  
+  <!-- Google Font: DM Sans (Cosmica substitute conforming to DESIGN.md) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Supabase JS Client via CDN (Zero build tools needed!) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ================= TOP NAVBAR ================= -->
+  <header class="top-navbar no-print">
+    <div class="top-nav-container">
+      <div class="brand-group">
+        <div class="brand-mark"></div>
+        <div class="brand-text-block">
+          <span class="brand-name" id="nav-brand-name">Agrawal Stationery & Printers</span>
+          <span class="brand-tagline" id="nav-brand-tagline">शासकीय आर्डर सप्लायर्स</span>
+        </div>
+        <span class="badge-tag">Management Portal</span>
+      </div>
+
+      <div class="top-nav-actions">
+        <!-- Supabase Cloud Connection Dot -->
+        <div class="cloud-status-badge" id="nav-cloud-status" title="Database Connection Status">
+          <span class="status-dot"></span>
+          <span class="status-label">Local Storage</span>
+        </div>
+
+        <!-- Global Settings Trigger Button -->
+        <button id="open-settings-btn" class="icon-button" aria-label="Open Global Settings" title="Global Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT PAGES (5 PRIMARY TABS + SUB-VIEWS) ================= -->
+  <main class="main-content">
+    
+    <!-- ================= 1. MAIN DASHBOARD / HOME ================= -->
+    <section id="page-main-home" class="page-view active">
+      <div class="content-card">
+        
+        <!-- Header -->
+        <div class="page-header">
+          <div class="header-top-row">
+            <div>
+              <div class="category-pill accent-pill">Central Hub</div>
+              <h1 class="page-title" id="home-headline">Executive Command Center</h1>
+              <p class="page-description" id="home-tagline">Real-time overview of client sales, vendor payables, and operational cashflow.</p>
+            </div>
+            <!-- Quick Action Buttons -->
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openInvoiceBuilder('client')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Create Client Invoice
+              </button>
+              <button class="btn btn-secondary" onclick="openInvoiceBuilder('vendor')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Create Vendor Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master KPI Metric Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card revenue-card">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-info">
+              <span class="kpi-label">Total Client Revenue</span>
+              <span class="kpi-value" id="kpi-client-revenue">₹0.00</span>
+              <span class="kpi-sub" id="kpi-client-count">0 Invoices Issued</span>
+            </div>
+          </div>
+
+          <div class="kpi-card expense-card">
+            <div class="kpi-icon">📦</div>
+            <div class="kpi-info">
+              <span class="kpi-label">Total Vendor Purchases</span>
+              <span class="kpi-value" id="kpi-vendor-expense">₹0.00</span>
+              <span class="kpi-sub" id="kpi-vendor-count">0 Bills Processed</span>
+            </div>
+          </div>
+
+          <div class="kpi-card receivable-card">
+            <div class="kpi-icon">⏳</div>
+            <div class="kpi-info">
+              <span class="kpi-label">Pending Client Receivables</span>
+              <span class="kpi-value text-accent" id="kpi-client-pending">₹0.00</span>
+              <span class="kpi-sub">Awaiting Collection</span>
+            </div>
+          </div>
+
+          <div class="kpi-card payable-card">
+            <div class="kpi-icon">🚨</div>
+            <div class="kpi-info">
+              <span class="kpi-label">Pending Vendor Payables</span>
+              <span class="kpi-value" id="kpi-vendor-pending">₹0.00</span>
+              <span class="kpi-sub">Awaiting Outflow</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Summary Badge Panel -->
+        <div class="company-badge-panel">
+          <div class="badge-item">
+            <span class="badge-label">Company</span>
+            <span class="badge-value" id="summary-company">Agrawal Stationery & Printers</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-label">GSTIN</span>
+            <span class="badge-value" id="summary-gstin">23AHUPA8808P1ZQ</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-label">Contact</span>
+            <span class="badge-value" id="summary-contact">94065 50160</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-label">Registered Bank</span>
+            <span class="badge-value" id="summary-bank">BANK OF BARODA</span>
+          </div>
+        </div>
+
+        <!-- Recent Activity Feed (Dual Column) -->
+        <div class="dual-grid" style="margin-top: 32px;">
+          <!-- Recent Client Invoices -->
+          <div class="sub-panel">
+            <div class="sub-panel-header">
+              <h3 class="panel-title">Recent Client Invoices</h3>
+              <button class="btn btn-ghost btn-sm" onclick="switchTab('page-client-dashboard')">View All →</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-home-client-invoices">
+                <thead>
+                  <tr>
+                    <th>Invoice No</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-home-client-invoices">
+                  <tr><td colspan="4" class="text-center text-muted">No client invoices yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Vendor Invoices -->
+          <div class="sub-panel">
+            <div class="sub-panel-header">
+              <h3 class="panel-title">Recent Vendor Purchases</h3>
+              <button class="btn btn-ghost btn-sm" onclick="switchTab('page-vendor-dashboard')">View All →</button>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table" id="table-home-vendor-invoices">
+                <thead>
+                  <tr>
+                    <th>Invoice No</th>
+                    <th>Vendor</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-home-vendor-invoices">
+                  <tr><td colspan="4" class="text-center text-muted">No vendor invoices yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 2. CLIENT MANAGEMENT ================= -->
+    <section id="page-client-management" class="page-view">
+      <div class="content-card">
+        
+        <div class="page-header">
+          <div class="header-top-row">
+            <div>
+              <div class="category-pill">Customer Directory</div>
+              <h1 class="page-title">Client Management</h1>
+              <p class="page-description">Onboard customers, search keywords, audit accounts, and view dedicated ledgers.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openClientModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                + Add Client
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="client-search-input" placeholder="Search by name, unique keyword, mobile, or GSTIN..." oninput="filterClients()">
+            </div>
+            <div class="toolbar-stats" id="client-count-badge">0 Clients Registered</div>
+          </div>
+        </div>
+
+        <!-- Clients Directory Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="clients-table">
+            <thead>
+              <tr>
+                <th width="12%">Keyword</th>
+                <th width="24%">Client / Firm Name</th>
+                <th width="16%">Contact Person</th>
+                <th width="14%">Mobile</th>
+                <th width="14%">GSTIN</th>
+                <th width="12%" class="text-right">Outstanding</th>
+                <th width="8%" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody">
+              <tr><td colspan="7" class="text-center text-muted">Loading clients directory...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 3. CLIENT DASHBOARD (INVOICES & ANALYTICS) ================= -->
+    <section id="page-client-dashboard" class="page-view">
+      <div class="content-card">
+        
+        <div class="page-header">
+          <div class="header-top-row">
+            <div>
+              <div class="category-pill accent-pill">Sales & Receivables</div>
+              <h1 class="page-title">Client Dashboard</h1>
+              <p class="page-description">Create digital paper invoices, monitor revenue collections, and track payment status.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openInvoiceBuilder('client')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Create Client Invoice
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Analytics Metric Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Total Invoiced Sales</span>
+              <span class="kpi-value" id="client-dash-total-sales">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total Collections (Paid)</span>
+              <span class="kpi-value text-success" id="client-dash-total-paid">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Pending Balance (Due)</span>
+              <span class="kpi-value text-accent" id="client-dash-total-due">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total Invoices</span>
+              <span class="kpi-value" id="client-dash-total-invoices">0</span>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="client-invoice-search" placeholder="Search by invoice no, client name, order no..." oninput="filterClientInvoices()">
+            </div>
+            <div class="filter-pills" id="client-invoice-status-filters">
+              <button class="pill-btn active" data-status="all" onclick="setClientInvoiceFilter('all')">All Invoices</button>
+              <button class="pill-btn" data-status="unpaid" onclick="setClientInvoiceFilter('unpaid')">Unpaid</button>
+              <button class="pill-btn" data-status="partially_paid" onclick="setClientInvoiceFilter('partially_paid')">Partial</button>
+              <button class="pill-btn" data-status="paid" onclick="setClientInvoiceFilter('paid')">Paid</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="client-invoices-table">
+            <thead>
+              <tr>
+                <th width="12%">Invoice No</th>
+                <th width="10%">Date</th>
+                <th width="10%">Order No</th>
+                <th width="24%">Client / Party Name</th>
+                <th width="12%" class="text-right">Taxable</th>
+                <th width="12%" class="text-right">Grand Total</th>
+                <th width="10%" class="text-center">Status</th>
+                <th width="10%" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="client-invoices-tbody">
+              <tr><td colspan="8" class="text-center text-muted">No client invoices found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 4. VENDOR MANAGEMENT ================= -->
+    <section id="page-vendor-management" class="page-view">
+      <div class="content-card">
+        
+        <div class="page-header">
+          <div class="header-top-row">
+            <div>
+              <div class="category-pill">Supplier Accounts</div>
+              <h1 class="page-title">Vendor Management</h1>
+              <p class="page-description">Maintain vendor profiles, track supply contracts, audit payables, and view statements.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openVendorModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                + Add Vendor
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="vendor-search-input" placeholder="Search by name, unique keyword, mobile, or GSTIN..." oninput="filterVendors()">
+            </div>
+            <div class="toolbar-stats" id="vendor-count-badge">0 Vendors Registered</div>
+          </div>
+        </div>
+
+        <!-- Vendor Directory Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="vendors-table">
+            <thead>
+              <tr>
+                <th width="12%">Keyword</th>
+                <th width="24%">Vendor / Supplier Name</th>
+                <th width="16%">Contact Person</th>
+                <th width="14%">Mobile</th>
+                <th width="14%">GSTIN</th>
+                <th width="12%" class="text-right">Outstanding</th>
+                <th width="8%" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendors-tbody">
+              <tr><td colspan="7" class="text-center text-muted">Loading vendor directory...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 5. VENDOR DASHBOARD (INVOICES & ANALYTICS) ================= -->
+    <section id="page-vendor-dashboard" class="page-view">
+      <div class="content-card">
+        
+        <div class="page-header">
+          <div class="header-top-row">
+            <div>
+              <div class="category-pill">Purchases & Payables</div>
+              <h1 class="page-title">Vendor Dashboard</h1>
+              <p class="page-description">Record vendor bills, monitor procurement expenses, and manage outbound payments.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" onclick="openInvoiceBuilder('vendor')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Create Vendor Invoice
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Analytics Metric Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Total Procurement Cost</span>
+              <span class="kpi-value" id="vendor-dash-total-purchases">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total Paid Out</span>
+              <span class="kpi-value text-success" id="vendor-dash-total-paid">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Pending Payables (Due)</span>
+              <span class="kpi-value text-accent" id="vendor-dash-total-due">₹0.00</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total Vendor Bills</span>
+              <span class="kpi-value" id="vendor-dash-total-invoices">0</span>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="table-toolbar">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="vendor-invoice-search" placeholder="Search by invoice no, vendor name, order no..." oninput="filterVendorInvoices()">
+            </div>
+            <div class="filter-pills" id="vendor-invoice-status-filters">
+              <button class="pill-btn active" data-status="all" onclick="setVendorInvoiceFilter('all')">All Invoices</button>
+              <button class="pill-btn" data-status="unpaid" onclick="setVendorInvoiceFilter('unpaid')">Unpaid</button>
+              <button class="pill-btn" data-status="partially_paid" onclick="setVendorInvoiceFilter('partially_paid')">Partial</button>
+              <button class="pill-btn" data-status="paid" onclick="setVendorInvoiceFilter('paid')">Paid</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vendor Invoices Table -->
+        <div class="table-wrapper">
+          <table class="data-table" id="vendor-invoices-table">
+            <thead>
+              <tr>
+                <th width="12%">Invoice No</th>
+                <th width="10%">Date</th>
+                <th width="10%">Order No</th>
+                <th width="24%">Vendor / Supplier Name</th>
+                <th width="12%" class="text-right">Taxable</th>
+                <th width="12%" class="text-right">Grand Total</th>
+                <th width="10%" class="text-center">Status</th>
+                <th width="10%" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendor-invoices-tbody">
+              <tr><td colspan="8" class="text-center text-muted">No vendor invoices found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SUB-VIEW: DEDICATED LEDGER PROFILE (CLIENT / VENDOR) ================= -->
+    <section id="view-ledger" class="sub-view">
+      <div class="content-card">
+        
+        <!-- Ledger Header -->
+        <div class="ledger-header-nav no-print">
+          <div class="ledger-header-left">
+            <button class="btn btn-ghost btn-sm" onclick="closeLedgerView()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Back to Directory
+            </button>
+            <div class="ledger-title-group">
+              <span class="category-pill" id="ledger-entity-type-badge">Client Ledger</span>
+              <h1 class="page-title" id="ledger-title-name">Party Name</h1>
+            </div>
+          </div>
+          
+          <div class="ledger-header-actions">
+            <button class="btn btn-primary" onclick="openPaymentModal()">+ Record Payment</button>
+            <button class="btn btn-secondary" onclick="window.print()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Print Statement
+            </button>
+            <button class="btn btn-ghost" id="ledger-edit-btn" onclick="editCurrentLedgerParty()">Edit Profile</button>
+          </div>
+        </div>
+
+        <!-- 4-Column Balanced Ledger Metrics -->
+        <div class="kpi-grid" style="margin-bottom: 24px;">
+          <div class="kpi-card">
+            <span class="kpi-label" id="ledger-metric-label-billed">Total Invoiced</span>
+            <span class="kpi-value" id="ledger-total-billed">₹0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" id="ledger-metric-label-paid">Total Received</span>
+            <span class="kpi-value text-success" id="ledger-total-paid">₹0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Outstanding Balance</span>
+            <span class="kpi-value text-accent" id="ledger-outstanding-balance">₹0.00</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Account Standing</span>
+            <span class="kpi-value" id="ledger-standing-badge" style="font-size: 18px;">Active</span>
+          </div>
+        </div>
+
+        <!-- 2-Column Details Dashboard -->
+        <div class="dual-grid" style="margin-bottom: 32px;">
+          <!-- Profile Card -->
+          <div class="sub-panel">
+            <h3 class="panel-title">Party Profile</h3>
+            <div class="profile-details-grid">
+              <div class="profile-row"><span class="p-label">Search Keyword:</span> <span class="p-val code-badge" id="ledger-info-keyword">-</span></div>
+              <div class="profile-row"><span class="p-label">Contact Person:</span> <span class="p-val" id="ledger-info-contact">-</span></div>
+              <div class="profile-row"><span class="p-label">Mobile:</span> <span class="p-val" id="ledger-info-mobile">-</span></div>
+              <div class="profile-row"><span class="p-label">Email:</span> <span class="p-val" id="ledger-info-email">-</span></div>
+              <div class="profile-row"><span class="p-label">GSTIN:</span> <span class="p-val" id="ledger-info-gstin">-</span></div>
+              <div class="profile-row"><span class="p-label">Billing Address:</span> <span class="p-val" id="ledger-info-address">-</span></div>
+              <div class="profile-row"><span class="p-label">Internal Notes:</span> <span class="p-val" id="ledger-info-notes">-</span></div>
+            </div>
+          </div>
+
+          <!-- Activity Breakdown -->
+          <div class="sub-panel">
+            <h3 class="panel-title">Account Activity</h3>
+            <div class="profile-details-grid">
+              <div class="profile-row"><span class="p-label">Total Invoices:</span> <span class="p-val" id="ledger-stat-invoices">0</span></div>
+              <div class="profile-row"><span class="p-label">Last Invoice Date:</span> <span class="p-val" id="ledger-stat-last-inv">-</span></div>
+              <div class="profile-row"><span class="p-label">Total Payment Entries:</span> <span class="p-val" id="ledger-stat-payments">0</span></div>
+              <div class="profile-row"><span class="p-label">Last Payment Date:</span> <span class="p-val" id="ledger-stat-last-pay">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statement of Accounts Table -->
+        <div class="sub-panel">
+          <div class="sub-panel-header">
+            <h3 class="panel-title">Statement of Accounts</h3>
+            <span class="text-muted text-sm">Chronological transactions and running balance</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table" id="ledger-statement-table">
+              <thead>
+                <tr>
+                  <th width="12%">Date</th>
+                  <th width="18%">Transaction Ref</th>
+                  <th width="12%">Type</th>
+                  <th width="14%" class="text-right">Charged (Debit)</th>
+                  <th width="14%" class="text-right">Received (Credit)</th>
+                  <th width="16%" class="text-right">Running Balance</th>
+                  <th width="14%">Status / Mode</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-statement-tbody">
+                <tr><td colspan="7" class="text-center text-muted">No transaction entries found for this ledger.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SUB-VIEW: SKEUOMORPHIC DIGITAL PAPER INVOICE BUILDER ================= -->
+    <section id="view-invoice-builder" class="sub-view">
+      
+      <!-- Top Action Toolbar (Floating, Hidden on Print) -->
+      <div class="invoice-toolbar no-print">
+        <div class="toolbar-left">
+          <button class="btn btn-ghost btn-sm" onclick="closeInvoiceBuilder()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Cancel & Back
+          </button>
+          
+          <!-- Autocomplete Party Search -->
+          <div class="party-autocomplete-wrap">
+            <div class="search-input-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="builder-party-search" placeholder="Type party keyword or name to autofill..." oninput="searchPartiesForBuilder()" autocomplete="off">
+            </div>
+            <div class="autocomplete-dropdown" id="builder-party-dropdown"></div>
+            <button class="btn btn-ghost btn-sm" id="builder-clear-party" onclick="clearBuilderParty()" title="Clear and unlock party fields">Clear</button>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="date-input-group">
+            <label>Payment Due Date:</label>
+            <input type="date" id="builder-due-date" class="toolbar-date-input">
+          </div>
+          
+          <button class="btn btn-secondary" onclick="printInvoice()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print A4 Bill
+          </button>
+
+          <button class="btn btn-primary" onclick="saveCurrentInvoice()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Save Invoice
+          </button>
+        </div>
+      </div>
+
+      <!-- The Digital Paper Canvas Container -->
+      <div class="invoice-paper-container">
+        <div class="invoice-paper" id="printable-invoice-paper">
+          
+          <!-- Hidden IDs -->
+          <input type="hidden" id="builder-invoice-id">
+          <input type="hidden" id="builder-party-id">
+          <input type="hidden" id="builder-entity-type" value="client">
+
+          <!-- 1. Header Area -->
+          <header class="invoice-header">
+            <!-- Custom Image Header (if uploaded in settings) -->
+            <div id="paper-image-header" style="display:none;">
+              <img id="paper-header-img" src="" alt="Company Header Banner">
+            </div>
+
+            <!-- Standard Typography Header (Default) -->
+            <div id="paper-text-header">
+              <div class="header-top-meta">
+                <div class="tagline-badge" id="paper-tagline">शासकीय आर्डर सप्लायर्स</div>
+                <div class="gstin-badge">GST : <span id="paper-gstin">23AHUPA8808P1ZQ</span></div>
+              </div>
+              <h1 class="company-brand-title" id="paper-company-name">Agrawal Stationery & Printers</h1>
+              <p class="company-sub-line">
+                <span id="paper-address">कन्हैया हजारी का बाड़ा माधवगंज, विदिशा (म.प्र.) 464001</span>, 
+                मोबा. <span id="paper-mobile">94065 50160</span>
+              </p>
+            </div>
+          </header>
+
+          <!-- 2. Party & Bill Information Box -->
+          <div class="invoice-meta-box">
+            <!-- Left Half: Party Details -->
+            <div class="meta-half party-half">
+              <div class="meta-row">
+                <span class="meta-label">Party :</span>
+                <textarea id="builder-party-name" class="paper-input" rows="2" placeholder="Party Name & Full Address"></textarea>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Mobile No. :</span>
+                <input type="text" id="builder-party-mobile" class="paper-input" placeholder="Mobile Number">
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">GST :</span>
+                <input type="text" id="builder-party-gst" class="paper-input" placeholder="GSTIN Number">
+              </div>
+            </div>
+
+            <!-- Right Half: Invoice & Order Meta -->
+            <div class="meta-half bill-half">
+              <div class="meta-row">
+                <span class="meta-label">Order No. :</span>
+                <input type="text" id="builder-order-no" class="paper-input" placeholder="Manual Order No">
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Order Date :</span>
+                <input type="date" id="builder-order-date" class="paper-input">
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Invoice No. :</span>
+                <input type="text" id="builder-invoice-no" class="paper-input bold-text" placeholder="e.g. 1042">
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Date :</span>
+                <input type="date" id="builder-invoice-date" class="paper-input bold-text">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Items & Services Table -->
+          <table class="items-table" id="builder-items-table">
+            <thead>
+              <tr>
+                <th width="5%">Sr.</th>
+                <th width="24%">Item Name / Description</th>
+                <th width="10%">Unit</th>
+                <th width="8%">Qty.</th>
+                <th width="9%">Rate</th>
+                <th width="10%">Amount</th>
+                <th width="7%" class="no-print">GST %</th>
+                <th width="9%">CGST</th>
+                <th width="9%">SGST</th>
+                <th width="12%">Total Value</th>
+                <th width="5%" class="no-print act-col"></th>
+              </tr>
+            </thead>
+            <tbody id="builder-items-tbody">
+              <!-- Item rows dynamically generated -->
+            </tbody>
+            <tfoot>
+              <tr class="totals-summary-row">
+                <td colspan="3" class="text-right"><strong>Total</strong></td>
+                <td id="calc-tot-qty" class="text-center font-bold">0</td>
+                <td></td>
+                <td id="calc-tot-amount" class="text-right font-bold">0.00</td>
+                <td class="no-print"></td>
+                <td id="calc-tot-cgst" class="text-right font-bold">0.00</td>
+                <td id="calc-tot-sgst" class="text-right font-bold">0.00</td>
+                <td id="calc-tot-grand" class="text-right font-bold">0.00</td>
+                <td class="no-print act-col"></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Add Item Row Button (Hidden on Print) -->
+          <div class="add-row-bar no-print">
+            <button class="btn btn-ghost btn-sm" onclick="addInvoiceItemRow()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              + Add Item Row
+            </button>
+          </div>
+
+          <!-- 4. Footer: Amount in Words, Bank Details, Tax Summary & Signatory -->
+          <div class="invoice-footer-box">
+            <!-- Left Column: Words & Bank -->
+            <div class="footer-left">
+              <div class="words-line">
+                <strong>Amount in words :</strong> INR <span id="paper-amount-words">Zero Only</span>
+              </div>
+              <div class="bank-details-box">
+                <div class="bank-box-title">Company's Bank Details</div>
+                <div class="bank-rows">
+                  <div class="b-row"><span class="b-lbl">Bank Name</span><span class="b-val">: <strong id="paper-bank-name">BANK OF BARODA</strong></span></div>
+                  <div class="b-row"><span class="b-lbl">A/c No.</span><span class="b-val">: <strong id="paper-account-no">31370500002933</strong></span></div>
+                  <div class="b-row"><span class="b-lbl">Branch & IFS Code</span><span class="b-val">: <strong id="paper-ifsc">VIDISHA & BARB0VIDISH</strong></span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Tax Totals & Signature -->
+            <div class="footer-right">
+              <div class="tax-summary-panel">
+                <div class="tax-line">
+                  <span>+ CGST</span>
+                  <span id="paper-tax-cgst">0.00</span>
+                </div>
+                <div class="tax-line">
+                  <span>+ SGST</span>
+                  <span id="paper-tax-sgst">0.00</span>
+                </div>
+                <div class="grand-total-line">
+                  <span>Grand Total</span>
+                  <span id="paper-tax-grand">₹0.00</span>
+                </div>
+              </div>
+
+              <div class="signatory-block">
+                <div class="for-company">for <span id="paper-sign-company">AGRAWAL STATIONERY & PRINTERS</span></div>
+                <div class="signature-space"></div>
+                <div class="sign-label">Authorised Signatory</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= FLOATING BOTTOM DOCK (5 PRIMARY TABS) ================= -->
+  <nav class="bottom-dock no-print" aria-label="Bottom Navigation">
+    <div class="dock-container">
+      
+      <!-- Tab 1: Home / Main Dashboard -->
+      <button class="nav-tab active" data-page="page-main-home" title="Main Dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
+
+      <!-- Tab 2: Client Management -->
+      <button class="nav-tab" data-page="page-client-management" title="Client Management">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Clients</span>
+      </button>
+
+      <!-- Tab 3: Client Dashboard / Invoices -->
+      <button class="nav-tab" data-page="page-client-dashboard" title="Client Invoices & Analytics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Client Invoices</span>
+      </button>
+
+      <!-- Tab 4: Vendor Management -->
+      <button class="nav-tab" data-page="page-vendor-management" title="Vendor Management">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13"/>
+          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/>
+          <circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <span>Vendors</span>
+      </button>
+
+      <!-- Tab 5: Vendor Dashboard / Invoices -->
+      <button class="nav-tab" data-page="page-vendor-dashboard" title="Vendor Invoices & Analytics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/>
+          <line x1="8" y1="8" x2="16" y2="8"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+          <line x1="8" y1="16" x2="13" y2="16"/>
+        </svg>
+        <span>Vendor Invoices</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ================= MODAL: GLOBAL MASTER SETTINGS ================= -->
+  <div id="settings-modal" class="modal-overlay no-print" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Global Master Settings</h2>
+          <p class="modal-subtitle">Details saved here automatically configure all invoices, ledgers, and bank details.</p>
+        </div>
+        <button id="close-settings-btn" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="settings-form" class="modal-form">
+        
+        <!-- Tabbed Settings Sections -->
+        <div class="settings-sections">
+          
+          <!-- Section 1: Company Profile -->
+          <div class="form-section">
+            <h4 class="section-heading">1. Company Profile (Header Information)</h4>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="company-name">Company Name <span class="required">*</span></label>
+                <input type="text" id="company-name" class="form-input" required placeholder="e.g. Agrawal Stationery & Printers">
+              </div>
+
+              <div class="form-group">
+                <label for="company-tagline">Tagline (Top Left)</label>
+                <input type="text" id="company-tagline" class="form-input" placeholder="e.g. शासकीय आर्डर सप्लायर्स">
+              </div>
+
+              <div class="form-group">
+                <label for="company-gstin">GST Number (GSTIN)</label>
+                <input type="text" id="company-gstin" class="form-input" placeholder="e.g. 23AHUPA8808P1ZQ">
+              </div>
+
+              <div class="form-group">
+                <label for="company-mobile">Mobile Number</label>
+                <input type="text" id="company-mobile" class="form-input" placeholder="e.g. 94065 50160">
+              </div>
+
+              <div class="form-group full-width">
+                <label for="company-address">Full Address</label>
+                <textarea id="company-address" class="form-textarea" rows="2" placeholder="e.g. कन्हैया हजारी का बाड़ा माधवगंज, विदिशा (म.प्र.) 464001"></textarea>
+              </div>
+
+              <!-- Header Image / Logo Upload -->
+              <div class="form-group full-width">
+                <label>Custom Header Image / Logo Banner (Optional)</label>
+                <input type="file" id="company-header-logo-input" accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handleLogoUpload(this)">
+                <div class="file-upload-row">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('company-header-logo-input').click()">Choose Banner Image</button>
+                  <button type="button" class="btn btn-ghost btn-sm text-danger" id="btn-remove-logo" style="display:none;" onclick="removeLogoImage()">Remove Image</button>
+                  <span class="file-help-text">If uploaded, replaces the text header on invoices.</span>
+                </div>
+                <div id="logo-preview-box" class="logo-preview-container" style="display:none;">
+                  <img id="logo-preview-img" src="" alt="Header Preview">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Invoice & Tax Defaults -->
+          <div class="form-section">
+            <h4 class="section-heading">2. Invoice & Tax Defaults</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="setting-default-gst">Default GST %</label>
+                <input type="number" id="setting-default-gst" class="form-input" min="0" max="100" placeholder="18">
+              </div>
+
+              <div class="form-group">
+                <label for="setting-units">Predefined Units (comma-separated)</label>
+                <input type="text" id="setting-units" class="form-input" placeholder="Nos, Pcs, Box, Kg, Pkt, Bundle, Set">
+              </div>
+
+              <div class="form-group full-width">
+                <label for="setting-payment-modes">Payment Modes (comma-separated)</label>
+                <input type="text" id="setting-payment-modes" class="form-input" placeholder="Cash, UPI, Bank Transfer, Cheque">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Bank Details -->
+          <div class="form-section">
+            <h4 class="section-heading">3. Company Bank Details</h4>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="setting-bank-name">Bank Name</label>
+                <input type="text" id="setting-bank-name" class="form-input" placeholder="e.g. BANK OF BARODA">
+              </div>
+
+              <div class="form-group">
+                <label for="setting-account-no">Account Number</label>
+                <input type="text" id="setting-account-no" class="form-input" placeholder="e.g. 31370500002933">
+              </div>
+
+              <div class="form-group full-width">
+                <label for="setting-ifsc">Branch & IFSC Code</label>
+                <input type="text" id="setting-ifsc" class="form-input" placeholder="e.g. VIDISHA & BARB0VIDISH">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Supabase Cloud Sync -->
+          <div class="form-section">
+            <details class="supabase-details">
+              <summary class="supabase-summary">
+                <span>Supabase Cloud Sync (Online Database)</span>
+                <span class="status-indicator" id="supabase-status">Local Only</span>
+              </summary>
+              <div class="form-grid" style="margin-top: 14px;">
+                <div class="form-group full-width">
+                  <label for="supabase-url">Supabase Project URL</label>
+                  <input type="url" id="supabase-url" class="form-input" placeholder="https://xyzcompany.supabase.co">
+                </div>
+                <div class="form-group full-width">
+                  <label for="supabase-key">Supabase Anon Public Key</label>
+                  <input type="password" id="supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                <p class="file-help-text full-width">Leave blank to store everything 100% locally in your browser.</p>
+              </div>
+            </details>
+          </div>
+
+        </div>
+
+        <div id="save-status-msg" class="status-message"></div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancel-settings-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD / EDIT CLIENT ================= -->
+  <div id="client-modal" class="modal-overlay no-print" aria-hidden="true" role="dialog">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="client-modal-title">Add New Client</h2>
+          <p class="modal-subtitle">Save customer contact, billing, and tax details.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeClientModal()">&times;</button>
+      </div>
+
+      <form id="client-form" onsubmit="saveClientForm(event)" class="modal-form">
+        <input type="hidden" id="client-form-id">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="client-name">Client / Firm Name <span class="required">*</span></label>
+            <input type="text" id="client-name" class="form-input" required placeholder="e.g. Collectorate Office Vidisha">
+          </div>
+          <div class="form-group">
+            <label for="client-keyword">Unique Search Keyword <span class="required">*</span></label>
+            <input type="text" id="client-keyword" class="form-input" required placeholder="e.g. collectorate">
+          </div>
+          <div class="form-group">
+            <label for="client-contact">Contact Person</label>
+            <input type="text" id="client-contact" class="form-input" placeholder="e.g. Shri R. K. Sharma">
+          </div>
+          <div class="form-group">
+            <label for="client-mobile">Mobile Number</label>
+            <input type="text" id="client-mobile" class="form-input" placeholder="e.g. 98260 12345">
+          </div>
+          <div class="form-group">
+            <label for="client-email">Email Address</label>
+            <input type="email" id="client-email" class="form-input" placeholder="e.g. client@mp.gov.in">
+          </div>
+          <div class="form-group">
+            <label for="client-gstin">GSTIN</label>
+            <input type="text" id="client-gstin" class="form-input" placeholder="e.g. 23AAAAA0000A1Z5">
+          </div>
+          <div class="form-group full-width">
+            <label for="client-address">Billing Address</label>
+            <textarea id="client-address" class="form-textarea" rows="2" placeholder="Full billing address"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label for="client-notes">Description / Remarks</label>
+            <textarea id="client-notes" class="form-textarea" rows="2" placeholder="Payment terms, special notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Client</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: ADD / EDIT VENDOR ================= -->
+  <div id="vendor-modal" class="modal-overlay no-print" aria-hidden="true" role="dialog">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="vendor-modal-title">Add New Vendor</h2>
+          <p class="modal-subtitle">Save supplier contact, billing, and tax details.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeVendorModal()">&times;</button>
+      </div>
+
+      <form id="vendor-form" onsubmit="saveVendorForm(event)" class="modal-form">
+        <input type="hidden" id="vendor-form-id">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="vendor-name">Vendor / Supplier Name <span class="required">*</span></label>
+            <input type="text" id="vendor-name" class="form-input" required placeholder="e.g. Orient Paper Mills Ltd">
+          </div>
+          <div class="form-group">
+            <label for="vendor-keyword">Unique Search Keyword <span class="required">*</span></label>
+            <input type="text" id="vendor-keyword" class="form-input" required placeholder="e.g. orient">
+          </div>
+          <div class="form-group">
+            <label for="vendor-contact">Contact Person</label>
+            <input type="text" id="vendor-contact" class="form-input" placeholder="e.g. Sales Manager">
+          </div>
+          <div class="form-group">
+            <label for="vendor-mobile">Mobile Number</label>
+            <input type="text" id="vendor-mobile" class="form-input" placeholder="e.g. 94250 56789">
+          </div>
+          <div class="form-group">
+            <label for="vendor-email">Email Address</label>
+            <input type="email" id="vendor-email" class="form-input" placeholder="e.g. sales@orientpaper.com">
+          </div>
+          <div class="form-group">
+            <label for="vendor-gstin">GSTIN</label>
+            <input type="text" id="vendor-gstin" class="form-input" placeholder="e.g. 23BBBBB1111B1Z2">
+          </div>
+          <div class="form-group full-width">
+            <label for="vendor-address">Billing Address</label>
+            <textarea id="vendor-address" class="form-textarea" rows="2" placeholder="Full supplier address"></textarea>
+          </div>
+          <div class="form-group full-width">
+            <label for="vendor-notes">Description / Remarks</label>
+            <textarea id="vendor-notes" class="form-textarea" rows="2" placeholder="Supply categories, bank references..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeVendorModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Vendor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: RECORD PAYMENT ================= -->
+  <div id="payment-modal" class="modal-overlay no-print" aria-hidden="true" role="dialog">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="payment-modal-title">Record Payment</h2>
+          <p class="modal-subtitle" id="payment-modal-subtitle">Add a credit payment transaction to this ledger.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closePaymentModal()">&times;</button>
+      </div>
+
+      <form id="payment-form" onsubmit="savePaymentForm(event)" class="modal-form">
+        <input type="hidden" id="payment-party-id">
+        <input type="hidden" id="payment-entity-type">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="payment-amount">Payment Amount (₹) <span class="required">*</span></label>
+            <input type="number" step="0.01" id="payment-amount" class="form-input bold-text" required placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="payment-date">Date <span class="required">*</span></label>
+            <input type="date" id="payment-date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="payment-mode">Payment Mode</label>
+            <select id="payment-mode" class="form-select">
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="payment-ref">Reference No / Cheque No / UTR</label>
+            <input type="text" id="payment-ref" class="form-input" placeholder="e.g. UTR12345678 or Chq #004521">
+          </div>
+          <div class="form-group full-width">
+            <label for="payment-notes">Notes / Remarks</label>
+            <input type="text" id="payment-notes" class="form-input" placeholder="e.g. Part payment against bill #1042">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closePaymentModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: INVOICE PAYMENT STATUS TRACKER ================= -->
+  <div id="status-modal" class="modal-overlay no-print" aria-hidden="true" role="dialog">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Track Payment Status</h2>
+          <p class="modal-subtitle" id="status-modal-subtitle">Invoice No: -</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeStatusModal()">&times;</button>
+      </div>
+
+      <form id="status-form" onsubmit="saveStatusForm(event)" class="modal-form">
+        <input type="hidden" id="status-invoice-id">
+        <input type="hidden" id="status-entity-type">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="status-invoice-grand">Grand Total Amount</label>
+            <input type="text" id="status-invoice-grand" class="form-input" readonly disabled>
+          </div>
+          <div class="form-group full-width">
+            <label for="status-select">Status</label>
+            <select id="status-select" class="form-select" onchange="handleStatusChange(this.value)">
+              <option value="unpaid">Unpaid (Full Due)</option>
+              <option value="partially_paid">Partially Paid</option>
+              <option value="paid">Paid (Fully Cleared)</option>
+            </select>
+          </div>
+          <div class="form-group full-width" id="status-paid-amount-wrap">
+            <label for="status-paid-amount">Amount Paid (₹)</label>
+            <input type="number" step="0.01" id="status-paid-amount" class="form-input" placeholder="0.00">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container no-print"></div>
+
+  <!-- Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
